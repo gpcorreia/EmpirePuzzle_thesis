@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics Opportunities</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- Estilo do Título --- */
+        /* --- Estilo do Título (Menor) --- */
+        .page-title {
+            font-family: 'Arial', sans-serif;
+            font-size: 1.8em;  /* Tamanho do título reduzido */
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 20px;  /* Reduzido o espaço abaixo */
+            text-transform: uppercase;
+            letter-spacing: 1px;  /* Menor espaçamento entre letras */
+            font-weight: bold;
+            padding: 15px;  /* Menor espaçamento dentro do título */
+            background-color: #333;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.3s ease;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Efeito de hover no título */
+        .page-title:hover {
+            background-color: #555; /* Muda a cor ao passar o mouse */
+        }
+         /* --- Layout Principal --- */
+         .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 2 colunas */
+            grid-template-rows: auto auto; /* 2 linhas */
+            gap: 30px;
+            margin-top: 40px;
+            background-color: #000000; /* Fundo preto */
+            padding: 20px;
+            border-radius: 16px; /* Bordas arredondadas no container */
+        }
+
+        /* --- Estilização do gráfico --- */
+        #chart-container {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #1C1C1E;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #grafico {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            border-radius: 8px;
+        }
+
+        /* --- Estilização das tabelas --- */
+        .table-container, .table-container-user {
+            background: #1C1C1E;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* --- Tabelas com bordas arredondadas e hover --- */
+        .table-container table, .table-container-user table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 12px;
+        }
+
+        .table-container th, .table-container td, .table-container-user th, .table-container-user td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #444;
+        }
+
+        .table-container th, .table-container-user th {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .table-container tr:hover, .table-container-user tr:hover {
+            background-color: #333; /* Efeito de hover nas linhas */
+        }
+
+        /* --- Estilo para os títulos das tabelas --- */
+        .table-container h2, .table-container-user h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Defina uma altura fixa (ou relativa) para o "quadrado" */
+            width: 100%;
+            height: 400px;      /* ex.: mesma altura dos gráficos */
+            background-color: #1C1C1E;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .image-container img {
+            /* remove width/max-width fixos */
+            max-width: 100%;
+            max-height: 100%;
+            /* garante que a proporção seja mantida e a imagem não seja cortada */
+            object-fit: contain;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-title">
+        Opportunitty Tested: {{ id }}
+    </div>
+    <div class="container">
+        <!-- 1x1 - Gráfico -->
+        <div id="chart-container">
+            <canvas id="graph"></canvas>
+        </div>
+
+        <!-- 1x2 - Tabela -->
+        <div class="table-container">
+            <h2>Similar Opportunities</h2>
+            <table>
+                <tbody id="data-table-body">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 1x2 - Tabela -->
+        <div class="table-container-user">
+            <h2>Users to Recommend</h2>
+            <table>
+                <tbody id="data-table-body-user">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 2x1 - Imagem 1
+        <div class="image-container">
+            <img src="data:image/png;base64,{{ img_base64_conf }}" alt="Image 1">
+        </div>
+
+        2x2 - Imagem 2--> 
+        <div class="image-container">
+            <img src="data:image/png;base64,{{ var_image }}" alt="Image 2">
+        </div> 
+    </div>
+
+    <script>
+        var ctx = document.getElementById('graph').getContext('2d');
+        var grafico = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Prob of being ACCEPTED', 'Prob of being REJECTED'],
+                datasets: [{
+                    data: [{{ prob_accept }}, {{ prob_reject }}],  // Valores recebidos do Python
+                    backgroundColor: ['#4CAF50', '#FF5252'], // Verde e vermelho
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });        
+        var arrayMostEqual = {{arrayMostEqual|tojson}}  
+        console.log(arrayMostEqual)
+
+        var tableBody = document.querySelector("#data-table-body");
+
+        arrayMostEqual.forEach(element => {
+            var row = document.createElement('tr');
+            row.innerHTML = `<td>${element.opportunities_id}</td><td>${element.name}</td>`;
+            tableBody.appendChild(row);
+        });
+        
+        var array_members = {{array_members|tojson}}  
+        console.log(array_members)
+
+        var tableBody_user = document.querySelector("#data-table-body-user");
+
+        array_members.forEach(element => {
+            var row = document.createElement('tr');
+            row.innerHTML = `<td>${element.Member_ID}</td><td>${element.Name}</td>`;
+            tableBody_user.appendChild(row);
+        });
+    </script>
+
+</body>
+</html>
